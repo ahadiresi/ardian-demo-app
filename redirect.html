@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Query Parameter</title>
+    <title>TikTok Auth Details</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,25 +11,65 @@
             margin: 60px auto;
             padding: 0 20px;
             text-align: center;
+            color: #18181b;
         }
 
-        #code {
+        .card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 24px;
             margin-top: 24px;
-            padding: 16px;
-            background: #f5f5f5;
+            text-align: left;
+        }
+
+        .label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .value-box {
+            padding: 12px 16px;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
             border-radius: 8px;
-            word-break: break-word;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+        .scopes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .scope-badge {
+            background-color: #e7f5ff;
+            color: #1971c2;
+            border: 1px solid #a5d8ff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
             font-family: monospace;
         }
 
         .copy-btn {
-            margin-top: 16px;
-            padding: 10px 20px;
-            font-size: 14px;
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 600;
             background-color: #000000;
             color: #ffffff;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
@@ -39,7 +79,7 @@
         }
 
         .copy-btn:disabled {
-            background-color: #ccc;
+            background-color: #ced4da;
             cursor: not-allowed;
         }
 
@@ -49,35 +89,62 @@
     </style>
 </head>
 <body>
-<h1>TikTok Authorization Token</h1>
-<div id="code"></div>
-<button id="copyBtn" class="copy-btn" onclick="copyToken()">Copy to clipboard</button>
+<h1>TikTok Authorization Response</h1>
+
+<div class="card">
+    <div class="label">Authorization Code Token</div>
+    <div id="code" class="value-box"></div>
+
+    <div class="label">Granted Scopes</div>
+    <div id="scopes" class="scopes-container"></div>
+
+    <button id="copyBtn" class="copy-btn" onclick="copyToken()">Copy Code to Clipboard</button>
+</div>
 
 <script>
     const params = new URLSearchParams(window.location.search);
-    const value = params.get("code");
+    const codeValue = params.get("code");
+    const scopeValue = params.get("scopes");
+
     const codeElement = document.getElementById("code");
+    const scopesElement = document.getElementById("scopes");
     const copyBtn = document.getElementById("copyBtn");
 
-    if (value !== null) {
-        codeElement.textContent = value;
+    // Handle Code Parameter
+    if (codeValue !== null) {
+        codeElement.textContent = codeValue;
     } else {
         codeElement.textContent = "No code parameter provided";
         copyBtn.disabled = true;
     }
 
+    // Handle Scope Parameter (TikTok passes scopes separated by commas)
+    if (scopeValue !== null && scopeValue.trim() !== "") {
+        const scopeList = scopeValue.split(",");
+        scopesElement.innerHTML = "";
+
+        scopeList.forEach(scope => {
+            const badge = document.createElement("span");
+            badge.className = "scope-badge";
+            badge.textContent = scope.trim();
+            scopesElement.appendChild(badge);
+        });
+    } else {
+        scopesElement.innerHTML = "<span style='color: #868e96; font-size: 14px;'>No scope parameters provided</span>";
+    }
+
+    // Copy Function
     async function copyToken() {
-        if (!value) return;
+        if (!codeValue) return;
 
         try {
-            await navigator.clipboard.writeText(value);
+            await navigator.clipboard.writeText(codeValue);
 
-            // Temporary feedback state
             copyBtn.textContent = "Copied to clipboard!";
             copyBtn.classList.add("copied");
 
             setTimeout(() => {
-                copyBtn.textContent = "Copy to clipboard";
+                copyBtn.textContent = "Copy Authorization Code to Clipboard";
                 copyBtn.classList.remove("copied");
             }, 2000);
         } catch (err) {
